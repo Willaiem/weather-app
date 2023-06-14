@@ -74,7 +74,6 @@ const ForecastThreeDays = ({ city }: WeatherProps) => {
     queryClient.invalidateQueries(["days", city, days]);
   };
 
-
   return (
     <div className="bg-zinc-700 border border-zinc-800 relative z-10 rounded-3xl p-5 mb-5 w-full max-w-md text-zinc-200 max-h-[240px]">
       <div className="flex items-center justify-between mb-5">
@@ -111,7 +110,7 @@ const ForecastThreeDays = ({ city }: WeatherProps) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <img
-                    src={`/src/assets/icons/${weathercode[i]}.png`}
+                    src={`/${weathercode[i]}.png`}
                     alt="weather icon"
                     className="mx-1 w-12 sm:w-14 2xl:w-16"
                   />
