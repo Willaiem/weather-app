@@ -18,4 +18,6 @@ Link to live demo: https://sensational-cupcake-3020bd.netlify.app
 - °C/°F toggle
 - map for current location
 
+# Image:
+
 ![Image Alt Text](screenshot/weatherapp.png)
