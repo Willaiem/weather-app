@@ -1,24 +1,54 @@
+import { useContext } from "react";
 import { FaTemperatureLow, FaThermometerFull, FaThinkPeaks } from "react-icons/fa";
 import { WiSunset } from "react-icons/wi";
-import { WeatherDetails } from "../api/getWeather";
-import { useUnitContext } from "../context/UnitContext";
+import { useQuery } from "react-query";
+import { getDaysForecast } from "../api/getWeather";
+import { UnitContext } from "../context/UnitContext";
+interface WeatherData {
+  current: {
+    pressure_mb: number;
+    feelslike_c: number;
+    feelslike_f: number;
+  };
 
-type OverviewProps = WeatherDetails
+  forecast: {
+    forecastday: Array<{
+      astro: {
+        sunrise: string;
+        sunset: string;
+      };
+      date: string;
+      day: {
+        maxtemp_c: number;
+        mintemp_c: number;
+        maxtemp_f: number;
+        mintemp_f: number;
+        condition: {
+          icon: string;
+        };
+      };
+    }>;
+  };
+}
 
-export const Overview = ({ currentDayForecast }: OverviewProps) => {
-  const { temperatureType } = useUnitContext();
+interface WeatherProps {
+  city: string;
+}
+const Overview = ({ city }: WeatherProps) => {
+  const { isMetric } = useContext(UnitContext);
+  const { data, isLoading, isError } = useQuery<WeatherData>(
+    ["days", city],
+    () => getDaysForecast(city, 1)
+  );
 
-  const {
-    maxtempC,
-    maxtempF,
-    mintempC,
-    mintempF,
-    feelslikeC,
-    feelslikeF,
-    pressureMb,
-    sunrise,
-    sunset,
-  } = currentDayForecast
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (isError) {
+    return <div>Something went wrong</div>;
+  }
+
+  const day = data?.forecast.forecastday[0];
 
   return (
     <div className="bg-zinc-700 relative z-10 rounded-3xl p-5 lg:max-w-4xl text-zinc-200 mb-5 max-w-md border border-zinc-800">
@@ -35,15 +65,17 @@ export const Overview = ({ currentDayForecast }: OverviewProps) => {
           </h2>
           <div className="flex flex-row items-center justify-end">
             <p className="font-semibold text-2xl">
-              {temperatureType === 'celsius'
-                ? maxtempC
-                : maxtempF}
+              {isMetric
+                ? day?.day.maxtemp_c.toFixed()
+                : day?.day.maxtemp_f.toFixed()}
+              °
             </p>
             <span className="mx-2">/</span>
             <p className="text-gray-300 text-xl">
-              {temperatureType === 'celsius'
-                ? mintempC
-                : mintempF}
+              {isMetric
+                ? day?.day.mintemp_c.toFixed()
+                : day?.day.mintemp_f.toFixed()}
+              °
             </p>
           </div>
         </div>
@@ -55,7 +87,7 @@ export const Overview = ({ currentDayForecast }: OverviewProps) => {
             Pressure
           </h2>
           <div className="flex flex-row items-center justify-end">
-            <p className="text-2xl">{pressureMb}</p>
+            <p className="text-2xl">{data?.current.pressure_mb} hPa</p>
           </div>
         </div>
         <div className="bg-zinc-900 p-5 rounded-2xl w-[190px] min-h-[170px] flex flex-col items-center justify-around">
@@ -67,9 +99,10 @@ export const Overview = ({ currentDayForecast }: OverviewProps) => {
           </h2>
           <div className="flex flex-row items-center justify-end">
             <p className="text-2xl">
-              {temperatureType === 'celsius'
-                ? feelslikeC
-                : feelslikeF}
+              {isMetric
+                ? data?.current.feelslike_c.toFixed()
+                : data?.current.feelslike_f.toFixed()}
+              °
             </p>
           </div>
         </div>
@@ -77,19 +110,21 @@ export const Overview = ({ currentDayForecast }: OverviewProps) => {
         <div className="bg-zinc-900 p-5 rounded-2xl w-[190px] min-h-[170px] flex flex-col items-center justify-between">
           <h2 className="flex items-center text-2xl justify-center">
             <span className="mr-1">
-              <WiSunset className="w-[33px] h-[33px]" />
+              <WiSunset size={33} />
             </span>
             Sunset
           </h2>
           <div className="flex flex-row items-center">
-            <p className="text-2xl">{sunset}</p>
+            <p className="text-2xl">{day?.astro.sunset}</p>
           </div>
           <div className="flex">
             <h3 className="mr-2"> Sunrise</h3>
-            <p>{sunrise}</p>
+            <p>{day?.astro.sunrise}</p>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+export default Overview;

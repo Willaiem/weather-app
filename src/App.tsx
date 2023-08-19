@@ -1,34 +1,22 @@
 import {
-  Route,
   Navigate,
+  Route,
+  RouterProvider,
   createBrowserRouter,
   createRoutesFromElements,
-  RouterProvider,
 } from "react-router-dom";
-import Home from "./pages/Home";
-import Welcome from "./pages/Welcome";
 import RootLayout from "./layout/RootLayout";
-import getUser from "./utils/getUser";
-
-
-
+import { Home, loader as homeLoader } from "./pages/Home";
+import { Welcome, loader as welcomeLoader } from "./pages/Welcome";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<RootLayout />}>
-      <Route index element={<Home />} loader={getUser} />
-      <Route path="/welcome" element={<Welcome />} loader={getUser} />
+      <Route index element={<Home />} loader={homeLoader} />
+      <Route path="/welcome" element={<Welcome />} loader={welcomeLoader} />
       <Route path="*" element={<Navigate to="/" />} />
     </Route>
   )
 );
-const App = () => {
-  return (
-    
-      <RouterProvider router={router} />
-      
-    
-  );
-};
 
-export default App;
+export const App = () => <RouterProvider router={router} />

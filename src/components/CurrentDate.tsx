@@ -1,4 +1,4 @@
-const CurrentDate = () => {
+export const CurrentDate = () => {
   const currentDate = new Date();
   const options: Intl.DateTimeFormatOptions = {
     weekday: "short",
@@ -10,7 +10,5 @@ const CurrentDate = () => {
     currentDate
   );
 
-  return <div className="text-zinc-100 text-2xl">{formattedDate}</div>;
+  return <p className="text-zinc-100 text-2xl">{formattedDate}</p>;
 };
-
-export default CurrentDate;

@@ -1,51 +1,41 @@
-import { useQuery } from "react-query";
-import getHourlyForecast from "../api/getHourlyForecast";
 import { motion } from "framer-motion";
-import { useRef, useState } from "react";
-import { UnitContext } from "../context/UnitContext";
-import { useContext } from "react";
+import { ElementRef, useRef, useState } from "react";
+import { WeatherDetails } from "../api/getWeather";
+import { useUnitContext } from "../context/UnitContext";
 
-const HourlyForecast = ({ weatherData }: any) => {
-  const [cursor, setCursor] = useState("cursor-grab");
-  const { isMetric } = useContext(UnitContext);
+type HourlyForecastProps = WeatherDetails
+
+export const HourlyForecast = (
+  {
+    currentDayForecast: { hourlyForecast, tempC, tempF, },
+    daysForecast: { threeDays: [nextDay] }
+  }: HourlyForecastProps) => {
+  const { temperatureType } = useUnitContext();
+
+  const [isCursorGrabbing, setIsCursorGrabbing] = useState(false);
+
   const handleGrabbing = () => {
-    setCursor("cursor-grabbing");
+    setIsCursorGrabbing(true);
   };
 
   const handleGrab = () => {
-    setCursor("cursor-grab");
+    setIsCursorGrabbing(false);
   };
 
-  const lat = weatherData?.location?.lat;
-  const lon = weatherData?.location?.lon;
-  const days = 2;
-  const ref = useRef<HTMLDivElement>(null);
-
-  const {
-    data: hourly,
-    isLoading,
-    error,
-  } = useQuery(["hourly", lat, lon], () => getHourlyForecast(lat, lon, days), {
-    enabled: Boolean(lat && lon && days),
-  });
+  const ref = useRef<ElementRef<'div'>>(null);
 
   const currentHourIndex = new Date().getHours();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-  if (error) {
-    return <div>Something went wrong</div>;
-  }
+  const { weatherIcon, weatherType } = hourlyForecast[currentHourIndex];
 
-  const currentHour = hourly?.forecast?.forecastday[0].hour[currentHourIndex];
-  const hoursFirstDay = hourly?.forecast?.forecastday[0].hour.slice(
+  const hoursFirstDay = hourlyForecast.slice(
     currentHourIndex + 1
   );
-  const hoursSecondDay = hourly?.forecast?.forecastday[1].hour.slice(
+  const hoursSecondDay = nextDay.hourlyForecast.slice(
     0,
     currentHourIndex
   );
+
 
   return (
     <div className="flex flex-wrap overflow-scroll no-scrollbar" ref={ref}>
@@ -54,45 +44,31 @@ const HourlyForecast = ({ weatherData }: any) => {
         onMouseUp={handleGrab}
         drag="x"
         dragConstraints={ref}
-        className={`flex flex-row gap-5 ${cursor}`}
+        className={`flex flex-row gap-5 ${isCursorGrabbing ? "cursor-grabbing" : "cursor-grab"}`}
       >
         <div className="rounded-3xl pointer-events-none bg-[#b3dadd] p-4 flex flex-col items-center justify-center">
           <h3 className="font-semibold">Now</h3>
-          <img src={currentHour.condition.icon} alt="weather icon" />
+          <img src={weatherIcon} alt={weatherType} />
           <span className="font-semibold">
-            {isMetric
-              ? weatherData?.current.temp_c.toFixed()
-              : weatherData?.current.temp_f.toFixed()}
-            °
+            {temperatureType === 'celsius'
+              ? tempC
+              : tempF}
           </span>
         </div>
-        {hoursFirstDay.map((hour: any, i: number) => (
+        {[hoursFirstDay, hoursSecondDay].map((hour) => hour.map((day, index) => (
           <div
-            key={i}
-            className="bg-[#b3dadd]  pointer-events-none rounded-3xl p-3 flex flex-col items-center justify-center"
-          >
-            <h3 className="font-semibold">{hour.time.slice(-5)}</h3>
-            <img src={hour.condition.icon} alt="weather icon" />
-            <span className="font-semibold">
-              {isMetric ? hour.temp_c.toFixed() : hour.temp_f.toFixed()}°
-            </span>
-          </div>
-        ))}
-        {hoursSecondDay.map((hour: any, i: number) => (
-          <div
-            key={i}
+            key={index}
             className="bg-[#b3dadd] pointer-events-none rounded-3xl p-3 flex flex-col items-center justify-center"
           >
-            <h3 className="font-semibold">{hour.time.slice(-5)}</h3>
-            <img src={hour.condition.icon} alt="weather icon" />
+            <h3 className="font-semibold">{day.time} {index}</h3>
+            <img src={day.weatherIcon} alt={day.weatherType} />
             <span className="font-semibold">
-              {isMetric ? hour.temp_c.toFixed() : hour.temp_f.toFixed()}°
+              {temperatureType === 'celsius' ? day.tempC : day.tempF}
             </span>
           </div>
-        ))}
+        )))}
       </motion.div>
     </div>
   );
-};
 
-export default HourlyForecast;
+};

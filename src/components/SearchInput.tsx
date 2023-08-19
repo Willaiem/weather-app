@@ -1,21 +1,25 @@
-import { CiSearch } from "react-icons/ci";
 import { useState } from "react";
+import { CiSearch } from "react-icons/ci";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 
-const SearchInput = ({ onSearch }: { onSearch: (city: string) => void }) => {
+const SearchSchema = z.string().transform(val => val.replaceAll(/\d/g, '').trim())
+
+export const SearchInput = () => {
   const [inputValue, setInputValue] = useState("");
+  const navigate = useNavigate()
 
-  const hasNumbers = (inputValue: string): boolean => {
-    const regex = /[0-9]/;
-    return regex.test(inputValue);
-  };
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (hasNumbers(inputValue)) {
-      return;
-    }
-    onSearch(inputValue);
+
+    const city = SearchSchema.parse(inputValue)
+    localStorage.setItem("city", city);
+
     setInputValue("");
+
+    navigate('/', { replace: false })
   };
+
   return (
     <div className="relative  flex items-center text-zinc-200">
       <form onSubmit={handleSubmit} className="flex items-center relative">
@@ -33,5 +37,3 @@ const SearchInput = ({ onSearch }: { onSearch: (city: string) => void }) => {
     </div>
   );
 };
-
-export default SearchInput;
